@@ -23,7 +23,9 @@ process MSISENSORPRO_MSI {
         path msisensorpro_scan
 
     output:
-        tuple val(meta), path("msisensorpro_*.list")
+        tuple val(meta), path("msisensorpro_*dis.list"),      emit: dis_list
+        tuple val(meta), path("msisensorpro_*germline.list"), emit: germline_list
+        tuple val(meta), path("msisensorpro_*somatic.list"),  emit: somatic_list
 
     script:
     def software = getSoftwareName(task.process)

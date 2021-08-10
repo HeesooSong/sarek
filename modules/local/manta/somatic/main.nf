@@ -25,7 +25,6 @@ process MANTA_SOMATIC {
         tuple path(target_bed), path(target_bed_tbi)
 
     output:
-        tuple val(meta), path(cram_normal), path(crai_normal), path(cram_tumor), path(crai_tumor), path("*.candidateSmallIndels.vcf.gz"), path("*.candidateSmallIndels.vcf.gz.tbi"), emit: manta_csi_for_strelka_bp
         tuple val(meta), path("*.candidateSmallIndels.vcf.gz"), path("*.candidateSmallIndels.vcf.gz.tbi"), emit: candidate_small_indels_vcf
         tuple val(meta), path("*.candidateSV.vcf.gz"), path("*.candidateSV.vcf.gz.tbi"),                   emit: candidate_sv_vcf
         tuple val(meta), path("*.diploidSV.vcf.gz"), path("*.diploidSV.vcf.gz.tbi"),                       emit: diploid_sv_vcf

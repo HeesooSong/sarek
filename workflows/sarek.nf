@@ -203,15 +203,17 @@ include { GERMLINE_VARIANT_CALLING } from '../subworkflows/local/germline_varian
     haplotypecaller_options:         modules['haplotypecaller'],
     strelka_options:                 modules['strelka_germline']
 )
-// // include { TUMOR_VARIANT_CALLING } from '../subworkflows/local/tumor_variant_calling' addParams(
-// // )
-// include { PAIR_VARIANT_CALLING } from '../subworkflows/local/pair_variant_calling' addParams(
-//     manta_options:                   modules['manta_somatic'],
-//     msisensorpro_msi_options:        modules['msisensorpro_msi'],
-//     strelka_bp_options:              modules['strelka_somatic_bp'],
-//     strelka_options:                 modules['strelka_somatic'],
-//     mutect2_somatic_options:         modules['mutect2_somatic']
-// )
+
+include { SOMATIC_VARIANT_CALLING } from '../subworkflows/local/somatic_variant_calling' addParams(
+    manta_options:                   modules['manta'],
+    msisensorpro_msi_options:        modules['msisensorpro_msi'],
+    strelka_bp_options:              modules['strelka_somatic_bp'],
+    strelka_options:                 modules['strelka_somatic'],
+    mutect2_somatic_options:         modules['mutect2_somatic'],
+    mutect2_filter_options:          modules['mutect2_filter']
+)
+
+// TODO Copy Number Subworkflow
 
 include { ANNOTATE } from '../subworkflows/local/annotate' addParams(
     annotation_cache:               params.annotation_cache,
@@ -407,7 +409,9 @@ workflow SAREK {
     if (step in 'variantcalling') cram_variant_calling = input_sample
 
     if (tools != []) {
+        // STEP 5: VARIANT CALLING
         vcf_to_annotate = Channel.empty()
+
         if (step in 'annotate') cram_variant_calling = Channel.empty()
 
         // GERMLINE VARIANT CALLING
@@ -424,39 +428,31 @@ workflow SAREK {
             target_bed,
             target_bed_gz_tbi)
 
-        vcf_to_annotate = vcf_to_annotate.mix(GERMLINE_VARIANT_CALLING.out.haplotypecaller_vcf, GERMLINE_VARIANT_CALLING.out.strelka_vcf)
-
         // SOMATIC VARIANT CALLING
+        SOMATIC_VARIANT_CALLING(
+             tools,
+             cram_variant_calling,
+             dbsnp,
+             dbsnp_tbi,
+             dict,
+             fai,
+             fasta,
+             intervals,
+             params.somatic_force_tumor_only,
+             msisensorpro_scan,
+             target_bed,
+             target_bed_gz_tbi,
+             germline_resource,
+             germline_resource_tbi,
+             pon,
+             pon_tbi)
 
-        // TUMOR ONLY VARIANT CALLING
-        // TUMOR_VARIANT_CALLING(
-        //     cram_variant_calling,
-        //     dbsnp,
-        //     dbsnp_tbi,
-        //     dict,
-        //     fai,
-        //     fasta,
-        //     intervals,
-        //     target_bed,
-        //     target_bed_gz_tbi)
+        vcf_to_annotate = vcf_to_annotate.mix(GERMLINE_VARIANT_CALLING.out.haplotypecaller_vcf, GERMLINE_VARIANT_CALLING.out.strelka_vcf,
+                                              SOMATIC_VARIANT_CALLING.out.manta_vcf, SOMATIC_VARIANT_CALLING.out.strelka_vcf,
+                                              SOMATIC_VARIANT_CALLING.out.mutect2_vcf, SOMATIC_VARIANT_CALLING.out.msipro_results)
 
-        // PAIR VARIANT CALLING
-        // PAIR_VARIANT_CALLING(
-        //     tools,
-        //     cram_variant_calling,
-        //     dbsnp,
-        //     dbsnp_tbi,
-        //     dict,
-        //     fai,
-        //     fasta,
-        //     intervals,
-        //     msisensorpro_scan,
-        //     target_bed,
-        //     target_bed_gz_tbi,
-        //     germline_resource,
-        //     germline_resource_tbi,
-        //     pon,
-        //     pon_tbi)
+
+        // TOOD COPY NUMBER SUBWORKFLOW
 
         // ANNOTATE
         if (step == 'annotate') vcf_to_annotate = input_sample

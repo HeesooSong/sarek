@@ -4,7 +4,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process GATK4_MUTECT2_SOMATIC {
+process MUTECT2_SOMATIC {
     //tag "$meta.id"
     label 'process_low'
     publishDir "${params.outdir}",
@@ -33,14 +33,14 @@ process GATK4_MUTECT2_SOMATIC {
     output:
     tuple val(meta), path("*.vcf"),       emit: vcf
     tuple val(meta), path("*.vcf.stats"), emit: vcf_stats
-    path "*.version.txt"          , emit: version
+    path "*.version.txt",                 emit: version
 
     script:
-    def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    def intervalsOptions = no_intervals ? "" : "-L ${interval}"
+    def software          = getSoftwareName(task.process)
+    def prefix            = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def intervalsOptions  = no_intervals ? "" : "-L ${interval}"
     def softClippedOption = params.ignore_soft_clipped_bases ? "--dont-use-soft-clipped-bases true" : ""
-    def PON = params.pon ? "--panel-of-normals ${pon}" : ""
+    def PON               = params.pon ? "--panel-of-normals ${pon}" : ""
     if (!task.memory) {
         log.info '[GATK Mutect2] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
     } else {

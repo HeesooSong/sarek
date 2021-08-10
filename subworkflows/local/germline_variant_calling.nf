@@ -28,7 +28,7 @@ workflow GERMLINE_VARIANT_CALLING {
         fai               // channel: [mandatory] fai
         fasta             // channel: [mandatory] fasta
         intervals         // channel: [mandatory] intervals
-        num_intervals
+        num_intervals     // integer
         target_bed        // channel: [optional]  target_bed
         target_bed_gz_tbi // channel: [optional]  target_bed_gz_tbi
 
@@ -38,10 +38,9 @@ workflow GERMLINE_VARIANT_CALLING {
     haplotypecaller_vcf  = Channel.empty()
     strelka_vcf          = Channel.empty()
 
-    no_intervals = false
-    if (intervals == []) no_intervals = true
-
+    // TODO Jose: make the haplotypecaller a subworkflow
     if ('haplotypecaller' in tools) {
+        no_intervals = intervals == []
 
         cram.combine(intervals).map{ meta, cram, crai, intervals ->
             new_meta = meta.clone()
@@ -96,7 +95,6 @@ workflow GERMLINE_VARIANT_CALLING {
     }
 
     if ('deepvariant' in tools) {
-
         DEEPVARIANT(
             bam,
             fasta,
@@ -118,9 +116,7 @@ workflow GERMLINE_VARIANT_CALLING {
 
     //TODO add all the remaining variant caller:
     //FREEBAYES
-    //SAMTOOLS MPILEUP
     //TIDDIT
-    //MANTA
 
     emit:
         haplotypecaller_gvcf = haplotypecaller_gvcf

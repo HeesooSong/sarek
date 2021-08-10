@@ -221,6 +221,12 @@
             "default": "",
             "fa_icon": "fas fa-toolbox",
             "properties": {
+                "somatic_force_tumor_only": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Somatic variant calling is performed on all tumor samples even if they have a matched pair. Otherwise only the tumor samples without a matching pair will be processed in tumor-only mode",
+                    "help_text": "Requires that there are tumor samples in the input"
+                },
                 "ascat_ploidy": {
                     "type": "string",
                     "fa_icon": "fas fa-wrench",
